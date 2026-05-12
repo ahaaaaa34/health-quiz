@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ライフステージと健康 - 確認テスト</title>
+  <title>ライフステージと健康 - 一問一答</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,498 +12,532 @@
       background: #f5f0f8;
       color: #333;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
       background: linear-gradient(135deg, #8b2252, #c0396e);
       color: white;
-      padding: 24px 20px;
+      padding: 18px 20px;
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    header h1 { font-size: 1.4rem; margin-bottom: 4px; }
-    header p { font-size: 0.85rem; opacity: 0.85; }
+    header h1 { font-size: 1.2rem; }
 
-    .container { max-width: 700px; margin: 0 auto; padding: 20px 16px 40px; }
-
-    .section-title {
-      background: #8b2252;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      margin: 28px 0 16px;
+    /* 進捗バー */
+    #progress-wrap {
+      background: #e8d4e8;
+      height: 6px;
+    }
+    #progress-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #8b2252, #c0396e);
+      transition: width 0.4s ease;
+      width: 0%;
     }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 18px 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-      border-left: 4px solid #c0396e;
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 30px 16px 40px;
+      width: 100%;
+      flex: 1;
     }
 
-    .q-text {
-      font-size: 0.95rem;
-      line-height: 1.8;
-      margin-bottom: 12px;
-    }
-
-    .blank-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 8px 0;
-    }
-    .blank-label {
+    /* カウンター */
+    #counter {
+      text-align: center;
       font-size: 0.85rem;
-      color: #8b2252;
-      font-weight: bold;
-      min-width: 30px;
+      color: #999;
+      margin-bottom: 20px;
     }
 
-    input[type="text"] {
+    /* 問題カード */
+    #q-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-left: 5px solid #c0396e;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #section-badge {
+      display: inline-block;
+      background: #f9e4ef;
+      color: #8b2252;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 100px;
+      width: fit-content;
+    }
+
+    #q-text {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      font-weight: bold;
+    }
+
+    /* 入力エリア */
+    #input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #ans-input {
       flex: 1;
       border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 1rem;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 1.05rem;
       font-family: inherit;
-      transition: border-color 0.2s;
       outline: none;
+      transition: border-color 0.2s, background 0.2s;
       min-width: 0;
     }
-    input[type="text"]:focus { border-color: #c0396e; }
-    input[type="text"].correct { border-color: #2e9e5b; background: #edfaf3; }
-    input[type="text"].wrong   { border-color: #e04040; background: #fff0f0; }
+    #ans-input:focus { border-color: #c0396e; }
+    #ans-input.correct-input {
+      border-color: #2e9e5b;
+      background: #edfaf3;
+    }
+    #ans-input.wrong-input {
+      border-color: #e04040;
+      background: #fff0f0;
+      animation: shake 0.3s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
 
-    .ans-btn {
+    #show-ans-btn {
       flex-shrink: 0;
       background: none;
       border: 1.5px solid #bbb;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 0.78rem;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
       color: #777;
       cursor: pointer;
       font-family: inherit;
       white-space: nowrap;
       transition: all 0.15s;
     }
-    .ans-btn:hover { border-color: #c0396e; color: #c0396e; background: #fdf0f5; }
+    #show-ans-btn:hover { border-color: #c0396e; color: #c0396e; background: #fdf0f5; }
 
-    .feedback {
-      font-size: 0.82rem;
-      margin-top: 4px;
-      font-weight: bold;
-      display: none;
-    }
-    .feedback.correct { color: #2e9e5b; display: block; }
-    .feedback.wrong   { color: #e04040; display: block; }
-
-    /* ○× */
-    .ox-row {
+    /* ○×ボタン */
+    #ox-row {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 8px 0;
+      gap: 16px;
+      justify-content: center;
     }
-    .ox-row .q-num { min-width: 24px; font-weight: bold; color: #8b2252; font-size: 0.9rem; }
-    .ox-row .ox-text { flex: 1; font-size: 0.9rem; line-height: 1.5; }
-    .ox-btns { display: flex; gap: 6px; }
     .ox-btn {
-      width: 42px; height: 42px;
+      width: 80px; height: 80px;
       border-radius: 50%;
-      border: 2px solid #ddd;
+      border: 3px solid #ddd;
       background: white;
-      font-size: 1.1rem;
+      font-size: 2rem;
       cursor: pointer;
       transition: all 0.15s;
       font-weight: bold;
     }
-    .ox-btn:hover { background: #f9e4ef; border-color: #c0396e; }
+    .ox-btn:hover { background: #f9e4ef; border-color: #c0396e; transform: scale(1.05); }
     .ox-btn.selected-maru { background: #2e9e5b; border-color: #2e9e5b; color: white; }
     .ox-btn.selected-batsu { background: #e04040; border-color: #e04040; color: white; }
-    .ox-btn.correct-ans { outline: 3px solid #2e9e5b; }
-    .ox-btn.wrong-ans   { outline: 3px solid #e04040; }
 
-    /* 記述 */
-    .desc-area {
-      width: 100%;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 80px;
-      outline: none;
-      transition: border-color 0.2s;
+    /* フィードバック */
+    #feedback {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      min-height: 36px;
+      transition: opacity 0.2s;
     }
-    .desc-area:focus { border-color: #c0396e; }
+    #feedback.correct-fb { color: #2e9e5b; }
+    #feedback.wrong-fb   { color: #e04040; }
 
-    .hint-btn {
-      margin-top: 8px;
-      background: none;
-      border: 1px solid #c0396e;
-      color: #c0396e;
-      border-radius: 6px;
-      padding: 5px 12px;
-      font-size: 0.82rem;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .hint-btn:hover { background: #fdf0f5; }
-    .hint-box {
-      display: none;
-      margin-top: 8px;
-      background: #fdf0f5;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 0.85rem;
-      line-height: 1.7;
-      color: #555;
-    }
-    .hint-box.show { display: block; }
-
-    /* ボタン */
-    .btn-check {
+    /* 次へボタン */
+    #next-btn {
       display: block;
       width: 100%;
-      max-width: 300px;
-      margin: 28px auto 0;
       padding: 14px;
       background: linear-gradient(135deg, #8b2252, #c0396e);
       color: white;
       border: none;
       border-radius: 12px;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       font-family: inherit;
-      box-shadow: 0 4px 12px rgba(192,57,110,0.35);
-      transition: transform 0.1s;
+      box-shadow: 0 4px 12px rgba(192,57,110,0.3);
+      transition: transform 0.1s, opacity 0.2s;
+      margin-top: 8px;
     }
-    .btn-check:hover { transform: translateY(-1px); }
-    .btn-check:active { transform: translateY(1px); }
+    #next-btn:hover { transform: translateY(-1px); }
+    #next-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
-    .btn-reset {
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      margin: 12px auto 0;
-      padding: 12px;
-      background: white;
-      color: #8b2252;
-      border: 2px solid #c0396e;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: inherit;
-      transition: transform 0.1s;
-    }
-    .btn-reset:hover { background: #fdf0f5; }
-
-    /* スコア */
-    #score-box {
+    /* 結果画面 */
+    #result-screen {
       display: none;
       background: white;
       border-radius: 16px;
-      padding: 28px 20px;
+      padding: 36px 24px;
       text-align: center;
-      margin-top: 28px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
-    #score-box h2 { font-size: 1.2rem; color: #8b2252; margin-bottom: 12px; }
-    #score-num { font-size: 3rem; font-weight: bold; color: #c0396e; }
-    #score-msg { margin-top: 10px; font-size: 1rem; color: #555; }
-    #score-bar-wrap { background: #f0e0ea; border-radius: 100px; height: 14px; margin: 16px 0 8px; overflow: hidden; }
-    #score-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #8b2252, #c0396e); width: 0%; transition: width 1s ease; }
+    #result-screen h2 { font-size: 1.4rem; color: #8b2252; margin-bottom: 16px; }
+    #result-score { font-size: 3.5rem; font-weight: bold; color: #c0396e; line-height: 1; }
+    #result-sub { font-size: 1rem; color: #888; margin: 8px 0 20px; }
+    #result-msg { font-size: 1.1rem; margin-bottom: 24px; }
+    #result-bar-wrap { background: #f0e0ea; border-radius: 100px; height: 14px; margin: 0 0 24px; overflow: hidden; }
+    #result-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #8b2252, #c0396e); width: 0%; transition: width 1s ease; }
+
+    .btn-retry {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #8b2252, #c0396e);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 12px rgba(192,57,110,0.3);
+    }
   </style>
 </head>
 <body>
 
 <header>
   <h1>📖 ライフステージと健康 / 結婚生活と健康</h1>
-  <p>確認テスト — 回答を入力して採点ボタンを押してください</p>
 </header>
+<div id="progress-wrap"><div id="progress-bar"></div></div>
 
 <div class="container">
+  <div id="counter"></div>
 
-  <!-- ========== 第1章 ========== -->
-  <div class="section-title">第1章｜ライフステージと健康 — 穴埋め</div>
-
-  <div class="card">
-    <div class="q-text">
-      心や体はある年齢までは発育・発達していきますが、その後発育・発達は止まり（①）が始まります。（②）はありますが、就学・就職・結婚・出産・育児・退職などのできごとである（③）が人生において起こります。
+  <div id="q-card">
+    <div id="section-badge"></div>
+    <div id="q-text"></div>
+    <div id="input-row" style="display:none">
+      <input type="text" id="ans-input" placeholder="答えを入力" autocomplete="off" />
+      <button id="show-ans-btn">答えを見る</button>
     </div>
-    <div class="blank-row"><span class="blank-label">①</span><input type="text" data-ans="老化" placeholder="答えを入力"></div>
-    <div class="feedback" id="f1"></div>
-    <div class="blank-row"><span class="blank-label">②</span><input type="text" data-ans="個人差" placeholder="答えを入力"></div>
-    <div class="feedback" id="f2"></div>
-    <div class="blank-row"><span class="blank-label">③</span><input type="text" data-ans="ライフイベント" placeholder="答えを入力"></div>
-    <div class="feedback" id="f3"></div>
+    <div id="ox-row" style="display:none">
+      <button class="ox-btn" id="btn-maru">○</button>
+      <button class="ox-btn" id="btn-batsu">×</button>
+    </div>
+    <div id="feedback"></div>
   </div>
 
-  <div class="card">
-    <div class="q-text">
-      （④）とは、年齢をもとに人生を乳幼児期・学童期・思春期・青年期・中年期・高年期などに分けたもので、これによって（⑤）も変化していきます。
-    </div>
-    <div class="blank-row"><span class="blank-label">④</span><input type="text" data-ans="ライフステージ" placeholder="答えを入力"></div>
-    <div class="feedback" id="f4"></div>
-    <div class="blank-row"><span class="blank-label">⑤</span><input type="text" data-ans="健康課題" placeholder="答えを入力"></div>
-    <div class="feedback" id="f5"></div>
+  <button id="next-btn" disabled>次の問題 →</button>
+
+  <div id="result-screen">
+    <h2>🎉 テスト終了！</h2>
+    <div id="result-score"></div>
+    <div id="result-sub"></div>
+    <div id="result-bar-wrap"><div id="result-bar"></div></div>
+    <div id="result-msg"></div>
+    <button class="btn-retry" onclick="startQuiz()">🔄 もう一度チャレンジ</button>
   </div>
-
-  <div class="card">
-    <div class="q-text">
-      乳幼児期や学童期の健康や福祉に対しては、（⑥）・児童福祉法・（⑦）などの法律があり、（⑧）や医療、（⑨）などがおこなわれています。
-    </div>
-    <div class="blank-row"><span class="blank-label">⑥</span><input type="text" data-ans="母子保健法" placeholder="答えを入力"></div>
-    <div class="feedback" id="f6"></div>
-    <div class="blank-row"><span class="blank-label">⑦</span><input type="text" data-ans="学校保健安全法" placeholder="答えを入力"></div>
-    <div class="feedback" id="f7"></div>
-    <div class="blank-row"><span class="blank-label">⑧</span><input type="text" data-ans="健康診断" placeholder="答えを入力"></div>
-    <div class="feedback" id="f8"></div>
-    <div class="blank-row"><span class="blank-label">⑨</span><input type="text" data-ans="保健指導" placeholder="答えを入力"></div>
-    <div class="feedback" id="f9"></div>
-  </div>
-
-  <div class="card">
-    <div class="q-text">
-      高齢者に対しては、（⑩）や（⑪）が提供されています。
-    </div>
-    <div class="blank-row"><span class="blank-label">⑩</span><input type="text" data-ans="医療" placeholder="答えを入力"></div>
-    <div class="feedback" id="f10"></div>
-    <div class="blank-row"><span class="blank-label">⑪</span><input type="text" data-ans="介護" placeholder="答えを入力"></div>
-    <div class="feedback" id="f11"></div>
-  </div>
-
-  <!-- ========== 選択式 記述 ========== -->
-  <div class="section-title">第1章｜ライフステージと健康 — 記述</div>
-
-  <div class="card">
-    <div class="q-text">Q. 学童期・思春期から始まり青年期まで続く、<strong>性にかかわる課題を4つ</strong>書きなさい。</div>
-    <div class="blank-row"><span class="blank-label">①</span><input type="text" data-ans="性行動" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">②</span><input type="text" data-ans="妊娠" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">③</span><input type="text" data-ans="出産" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">④</span><input type="text" data-ans="育児" placeholder="答えを入力"></div>
-  </div>
-
-  <div class="card">
-    <div class="q-text">Q. 働くこととのかかわりで生じる<strong>健康課題を2つ</strong>書きなさい。</div>
-    <div class="blank-row"><span class="blank-label">①</span><input type="text" data-ans="労働災害" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">②</span><input type="text" data-ans="身体活動の減少" placeholder="答えを入力"></div>
-  </div>
-
-  <div class="card">
-    <div class="q-text">Q. <strong>高年期における健康課題を4つ</strong>書きなさい。</div>
-    <div class="blank-row"><span class="blank-label">①</span><input type="text" data-ans="生活習慣病" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">②</span><input type="text" data-ans="骨折" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">③</span><input type="text" data-ans="白内障" placeholder="答えを入力"></div>
-    <div class="blank-row"><span class="blank-label">④</span><input type="text" data-ans="交通事故" placeholder="答えを入力（交通事故も可）"></div>
-  </div>
-
-  <!-- ========== 第6章 ========== -->
-  <div class="section-title">第6章｜結婚生活と健康 — 穴埋め</div>
-
-  <div class="card">
-    <div class="q-text">
-      社会的に認められた夫婦の関係として、結婚は（①）で定められています。（②）が十分に発達していることは結婚における大切な要件といえますが、結婚観の多様化により要件についてはさまざまな考え方があります。
-    </div>
-    <div class="blank-row"><span class="blank-label">①</span><input type="text" data-ans="法律" placeholder="答えを入力"></div>
-    <div class="feedback" id="g1"></div>
-    <div class="blank-row"><span class="blank-label">②</span><input type="text" data-ans="生殖機能" placeholder="答えを入力"></div>
-    <div class="feedback" id="g2"></div>
-  </div>
-
-  <div class="card">
-    <div class="q-text">
-      出産する（③）が上がるにしたがって妊娠が難しくなっていきます。これによっては（④）など、出産にともなう健康上の問題が起こる危険性が高くなります。
-    </div>
-    <div class="blank-row"><span class="blank-label">③</span><input type="text" data-ans="年齢" placeholder="答えを入力"></div>
-    <div class="feedback" id="g3"></div>
-    <div class="blank-row"><span class="blank-label">④</span><input type="text" data-ans="死産" placeholder="答えを入力"></div>
-    <div class="feedback" id="g4"></div>
-  </div>
-
-  <div class="card">
-    <div class="q-text">
-      結婚することで（⑤）が始まり、パートナーと（⑥）して対処していくことが必要になります。そのためには、互いを認めあい、健康に対する（⑦）や思いやりの気持ちをもつなど、良好な（⑧）を構築していくことが必要です。ここにおいて、（⑨）の発達も欠かすことができません。
-    </div>
-    <div class="blank-row"><span class="blank-label">⑤</span><input type="text" data-ans="共同生活" placeholder="答えを入力"></div>
-    <div class="feedback" id="g5"></div>
-    <div class="blank-row"><span class="blank-label">⑥</span><input type="text" data-ans="協力" placeholder="答えを入力"></div>
-    <div class="feedback" id="g6"></div>
-    <div class="blank-row"><span class="blank-label">⑦</span><input type="text" data-ans="責任感" placeholder="答えを入力"></div>
-    <div class="feedback" id="g7"></div>
-    <div class="blank-row"><span class="blank-label">⑧</span><input type="text" data-ans="人間関係" placeholder="答えを入力"></div>
-    <div class="feedback" id="g8"></div>
-    <div class="blank-row"><span class="blank-label">⑨</span><input type="text" data-ans="精神面" placeholder="答えを入力"></div>
-    <div class="feedback" id="g9"></div>
-  </div>
-
-  <!-- ========== ○× ========== -->
-  <div class="section-title">○×問題</div>
-
-  <div class="card" id="ox-card">
-    <div class="ox-row">
-      <span class="q-num">1</span>
-      <span class="ox-text">ライフステージとは年齢をもとに人生を段階に分けたものである</span>
-      <div class="ox-btns">
-        <button class="ox-btn" data-q="ox1" data-val="○">○</button>
-        <button class="ox-btn" data-q="ox1" data-val="×">×</button>
-      </div>
-    </div>
-    <div class="ox-row">
-      <span class="q-num">2</span>
-      <span class="ox-text">出産する年齢が上がっても妊娠の難しさは変わらない</span>
-      <div class="ox-btns">
-        <button class="ox-btn" data-q="ox2" data-val="○">○</button>
-        <button class="ox-btn" data-q="ox2" data-val="×">×</button>
-      </div>
-    </div>
-    <div class="ox-row">
-      <span class="q-num">3</span>
-      <span class="ox-text">高年期の健康課題に骨折や白内障が含まれる</span>
-      <div class="ox-btns">
-        <button class="ox-btn" data-q="ox3" data-val="○">○</button>
-        <button class="ox-btn" data-q="ox3" data-val="×">×</button>
-      </div>
-    </div>
-    <div class="ox-row">
-      <span class="q-num">4</span>
-      <span class="ox-text">労働災害は働くこととかかわりのある健康課題である</span>
-      <div class="ox-btns">
-        <button class="ox-btn" data-q="ox4" data-val="○">○</button>
-        <button class="ox-btn" data-q="ox4" data-val="×">×</button>
-      </div>
-    </div>
-    <div class="ox-row">
-      <span class="q-num">5</span>
-      <span class="ox-text">結婚生活では精神面の発達は特に必要ではない</span>
-      <div class="ox-btns">
-        <button class="ox-btn" data-q="ox5" data-val="○">○</button>
-        <button class="ox-btn" data-q="ox5" data-val="×">×</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ボタン -->
-  <button class="btn-check" onclick="checkAll()">✅ 採点する</button>
-  <button class="btn-reset" onclick="resetAll()">🔄 最初からやり直す</button>
-
-  <!-- スコア -->
-  <div id="score-box">
-    <h2>📊 結果</h2>
-    <div id="score-num"></div>
-    <div id="score-bar-wrap"><div id="score-bar"></div></div>
-    <div id="score-msg"></div>
-  </div>
-
 </div>
 
 <script>
-  // 「答えを見る」ボタンを全inputに自動追加
-  document.querySelectorAll('input[type="text"][data-ans]').forEach(inp => {
-    const ans = inp.dataset.ans;
-    const originalPlaceholder = inp.placeholder;
-    const btn = document.createElement('button');
-    btn.className = 'ans-btn';
-    btn.textContent = '答えを見る';
-    let showing = false;
-    btn.addEventListener('click', () => {
+const questions = [
+  // ── 第1章 穴埋め ──
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '心や体はある年齢までは発育・発達していきますが、その後発育・発達は止まり（　）が始まります。',
+    ans: '老化' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '就学・就職・結婚・出産・育児・退職などのできごとを（　）という。',
+    ans: 'ライフイベント' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '（　）はありますが、人生においてライフイベントは誰にでも起こります。',
+    ans: '個人差' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '（　）とは、年齢をもとに人生を乳幼児期・学童期・思春期・青年期・中年期・高年期などに分けたものである。',
+    ans: 'ライフステージ' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: 'ライフステージによって（　）も変化していきます。',
+    ans: '健康課題' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '乳幼児期・学童期の健康や福祉を守る法律のひとつ、（　）とは？',
+    ans: '母子保健法' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '乳幼児期・学童期の健康を守る法律として、母子保健法・児童福祉法のほかに（　）がある。',
+    ans: '学校保健安全法' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: 'これらの法律により、（　）や医療・保健指導がおこなわれている。',
+    ans: '健康診断' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '健康診断や医療のほかに、（　）もおこなわれている。',
+    ans: '保健指導' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '高齢者に対しては、（　）や介護が提供されている。',
+    ans: '医療' },
+  { section: '第1章｜穴埋め', type: 'text',
+    q: '高齢者に対しては、医療や（　）が提供されている。',
+    ans: '介護' },
+
+  // ── 第1章 記述 ──
+  { section: '第1章｜記述', type: 'text',
+    q: '学童期〜青年期まで続く性にかかわる課題①（4つのうち）',
+    ans: '性行動' },
+  { section: '第1章｜記述', type: 'text',
+    q: '学童期〜青年期まで続く性にかかわる課題②（4つのうち）',
+    ans: '妊娠' },
+  { section: '第1章｜記述', type: 'text',
+    q: '学童期〜青年期まで続く性にかかわる課題③（4つのうち）',
+    ans: '出産' },
+  { section: '第1章｜記述', type: 'text',
+    q: '学童期〜青年期まで続く性にかかわる課題④（4つのうち）',
+    ans: '育児' },
+  { section: '第1章｜記述', type: 'text',
+    q: '働くこととのかかわりで生じる健康課題①（2つのうち）',
+    ans: '労働災害' },
+  { section: '第1章｜記述', type: 'text',
+    q: '働くこととのかかわりで生じる健康課題②（2つのうち）',
+    ans: '身体活動の減少' },
+  { section: '第1章｜記述', type: 'text',
+    q: '高年期における健康課題①（4つのうち）',
+    ans: '生活習慣病' },
+  { section: '第1章｜記述', type: 'text',
+    q: '高年期における健康課題②（4つのうち）',
+    ans: '骨折' },
+  { section: '第1章｜記述', type: 'text',
+    q: '高年期における健康課題③（4つのうち）',
+    ans: '白内障' },
+  { section: '第1章｜記述', type: 'text',
+    q: '高年期における健康課題④（4つのうち）',
+    ans: '交通事故' },
+
+  // ── 第6章 穴埋め ──
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '社会的に認められた夫婦の関係として、結婚は（　）で定められている。',
+    ans: '法律' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '（　）が十分に発達していることは結婚における大切な要件といえる。',
+    ans: '生殖機能' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '出産する（　）が上がるにしたがって妊娠が難しくなる。',
+    ans: '年齢' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '出産する年齢が上がると（　）など、出産にともなう健康上の問題が起こる危険性が高くなる。',
+    ans: '死産' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '結婚することでそれまで異なる生活をしていた者どうしの（　）が始まる。',
+    ans: '共同生活' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '結婚生活で起こることに対して、パートナーと（　）して対処していくことが必要。',
+    ans: '協力' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '互いを認めあい、健康に対する（　）や思いやりをもつことが大切。',
+    ans: '責任感' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '良好な（　）を構築していくことが必要である。',
+    ans: '人間関係' },
+  { section: '第6章｜穴埋め', type: 'text',
+    q: '（　）の発達も欠かすことができない。',
+    ans: '精神面' },
+
+  // ── ○× ──
+  { section: '○×問題', type: 'ox',
+    q: 'ライフステージとは年齢をもとに人生を段階に分けたものである。',
+    ans: '○' },
+  { section: '○×問題', type: 'ox',
+    q: '出産する年齢が上がっても妊娠の難しさは変わらない。',
+    ans: '×' },
+  { section: '○×問題', type: 'ox',
+    q: '高年期の健康課題に骨折や白内障が含まれる。',
+    ans: '○' },
+  { section: '○×問題', type: 'ox',
+    q: '労働災害は働くこととかかわりのある健康課題である。',
+    ans: '○' },
+  { section: '○×問題', type: 'ox',
+    q: '結婚生活では精神面の発達は特に必要ではない。',
+    ans: '×' },
+];
+
+let idx = 0, correct = 0, answered = false, showing = false;
+
+function normalize(s) {
+  return s.trim().replace(/\s+/g, '')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+let order = [];
+
+function startQuiz() {
+  idx = 0; correct = 0; answered = false; showing = false;
+  order = shuffle([...Array(questions.length).keys()]);
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('q-card').style.display = 'flex';
+  document.getElementById('counter').style.display = 'block';
+  document.getElementById('next-btn').style.display = 'block';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  showing = false;
+  const q = questions[order[idx]];
+  const total = questions.length;
+
+  document.getElementById('counter').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('progress-bar').style.width = (idx / total * 100) + '%';
+  document.getElementById('section-badge').textContent = q.section;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = idx + 1 < total ? '次の問題 →' : '結果を見る';
+
+  if (q.type === 'text') {
+    document.getElementById('input-row').style.display = 'flex';
+    document.getElementById('ox-row').style.display = 'none';
+    const inp = document.getElementById('ans-input');
+    inp.value = '';
+    inp.className = '';
+    inp.placeholder = '答えを入力';
+    inp.disabled = false;
+    inp.focus();
+
+    const showBtn = document.getElementById('show-ans-btn');
+    showBtn.textContent = '答えを見る';
+    showBtn.onclick = () => {
       showing = !showing;
-      inp.placeholder = showing ? ans : originalPlaceholder;
-      btn.textContent = showing ? '隠す' : '答えを見る';
-    });
-    inp.parentNode.appendChild(btn);
-  });
-
-  const OX_ANSWERS = { ox1: '○', ox2: '×', ox3: '○', ox4: '○', ox5: '×' };
-  const oxSelected = {};
-
-  // ○×ボタン選択
-  document.querySelectorAll('.ox-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const q = btn.dataset.q;
-      document.querySelectorAll(`.ox-btn[data-q="${q}"]`).forEach(b => {
-        b.classList.remove('selected-maru', 'selected-batsu');
-      });
-      const cls = btn.dataset.val === '○' ? 'selected-maru' : 'selected-batsu';
-      btn.classList.add(cls);
-      oxSelected[q] = btn.dataset.val;
-    });
-  });
-
-  function normalize(str) {
-    return str.trim()
-      .replace(/\s+/g, '')
-      .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
-  }
-
-  function checkAll() {
-    let correct = 0, total = 0;
-
-    // テキスト入力
-    document.querySelectorAll('input[type="text"]').forEach(inp => {
-      const ans = inp.dataset.ans;
-      if (!ans) return;
-      total++;
-      const userVal = normalize(inp.value);
-      const correctVal = normalize(ans);
-      // 部分一致も許容（交通事故など）
-      const isOk = userVal === correctVal || correctVal.includes(userVal) && userVal.length >= 2;
-      inp.classList.remove('correct', 'wrong');
-      inp.classList.add(isOk ? 'correct' : 'wrong');
-      if (isOk) correct++;
-    });
-
-    // ○×
-    Object.keys(OX_ANSWERS).forEach(q => {
-      total++;
-      const btns = document.querySelectorAll(`.ox-btn[data-q="${q}"]`);
-      const isOk = oxSelected[q] === OX_ANSWERS[q];
-      if (isOk) correct++;
-      btns.forEach(b => {
-        b.classList.remove('correct-ans', 'wrong-ans');
-        if (b.dataset.val === OX_ANSWERS[q]) b.classList.add('correct-ans');
-        if (oxSelected[q] && b.dataset.val === oxSelected[q] && !isOk) b.classList.add('wrong-ans');
-      });
-    });
-
-    // スコア表示
-    const pct = Math.round(correct / total * 100);
-    const box = document.getElementById('score-box');
-    box.style.display = 'block';
-    document.getElementById('score-num').textContent = `${correct} / ${total} 問正解（${pct}%）`;
-    document.getElementById('score-bar').style.width = pct + '%';
-
-    let msg = '';
-    if (pct === 100) msg = '🎉 満点！完璧です！';
-    else if (pct >= 80) msg = '👏 よくできました！あと少しで満点！';
-    else if (pct >= 60) msg = '📚 もう少し復習しましょう！';
-    else msg = '💪 教科書を見直してもう一度チャレンジ！';
-    document.getElementById('score-msg').textContent = msg;
-
-    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  function resetAll() {
-    document.querySelectorAll('input[type="text"]').forEach(inp => {
-      inp.value = '';
-      inp.classList.remove('correct', 'wrong');
-    });
+      inp.placeholder = showing ? q.ans : '答えを入力';
+      showBtn.textContent = showing ? '隠す' : '答えを見る';
+    };
+  } else {
+    document.getElementById('input-row').style.display = 'none';
+    document.getElementById('ox-row').style.display = 'flex';
     document.querySelectorAll('.ox-btn').forEach(b => {
-      b.classList.remove('selected-maru', 'selected-batsu', 'correct-ans', 'wrong-ans');
+      b.classList.remove('selected-maru', 'selected-batsu');
+      b.disabled = false;
     });
-    Object.keys(oxSelected).forEach(k => delete oxSelected[k]);
-    document.getElementById('score-box').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+// テキスト入力リアルタイム判定
+document.getElementById('ans-input').addEventListener('input', () => {
+  if (answered) return;
+  const q = questions[order[idx]];
+  const inp = document.getElementById('ans-input');
+  const userVal = normalize(inp.value);
+  const correctVal = normalize(q.ans);
+  const isOk = userVal === correctVal || (correctVal.includes(userVal) && userVal.length >= 2 && userVal.length >= correctVal.length - 1);
+  if (isOk) {
+    answered = true;
+    correct++;
+    inp.classList.add('correct-input');
+    inp.disabled = true;
+    showFeedback(true, q.ans);
+    document.getElementById('next-btn').disabled = false;
+  }
+});
+
+// ○×ボタン
+document.getElementById('btn-maru').addEventListener('click', () => handleOX('○'));
+document.getElementById('btn-batsu').addEventListener('click', () => handleOX('×'));
+
+function handleOX(val) {
+  if (answered) return;
+  answered = true;
+  const q = questions[order[idx]];
+  const isOk = val === q.ans;
+  if (isOk) correct++;
+
+  const maruBtn = document.getElementById('btn-maru');
+  const batsuBtn = document.getElementById('btn-batsu');
+  maruBtn.disabled = true;
+  batsuBtn.disabled = true;
+
+  if (val === '○') maruBtn.classList.add('selected-maru');
+  else batsuBtn.classList.add('selected-batsu');
+
+  showFeedback(isOk, `正解は「${q.ans}」`);
+  document.getElementById('next-btn').disabled = false;
+}
+
+function showFeedback(isOk, hint) {
+  const fb = document.getElementById('feedback');
+  if (isOk) {
+    fb.textContent = '✅ 正解！';
+    fb.className = 'correct-fb';
+  } else {
+    fb.textContent = `❌ 不正解　正解：${hint}`;
+    fb.className = 'wrong-fb';
+    const inp = document.getElementById('ans-input');
+    if (!inp.disabled) {
+      inp.classList.add('wrong-input');
+      setTimeout(() => inp.classList.remove('wrong-input'), 400);
+    }
+  }
+}
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (!answered) return;
+  idx++;
+  if (idx >= questions.length) {
+    showResult();
+  } else {
+    loadQuestion();
+  }
+});
+
+// Enterキーで次へ
+document.getElementById('ans-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && answered) {
+    document.getElementById('next-btn').click();
+  }
+});
+
+function showResult() {
+  const total = questions.length;
+  const pct = Math.round(correct / total * 100);
+  document.getElementById('q-card').style.display = 'none';
+  document.getElementById('counter').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('progress-bar').style.width = '100%';
+
+  const rs = document.getElementById('result-screen');
+  rs.style.display = 'block';
+  document.getElementById('result-score').textContent = `${pct}%`;
+  document.getElementById('result-sub').textContent = `${correct} / ${total} 問正解`;
+
+  let msg = '';
+  if (pct === 100) msg = '🎉 満点！完璧です！';
+  else if (pct >= 80) msg = '👏 よくできました！';
+  else if (pct >= 60) msg = '📚 もう少し復習しましょう！';
+  else msg = '💪 教科書を見直してもう一度！';
+  document.getElementById('result-msg').textContent = msg;
+
+  setTimeout(() => {
+    document.getElementById('result-bar').style.width = pct + '%';
+  }, 100);
+}
+
+startQuiz();
 </script>
 </body>
 </html>
