@@ -93,19 +93,6 @@
       transition: all 0.15s;
     }
     .ans-btn:hover { border-color: #c0396e; color: #c0396e; background: #fdf0f5; }
-    .ans-bubble {
-      display: none;
-      font-size: 0.88rem;
-      color: #8b2252;
-      font-weight: bold;
-      background: #fdf0f5;
-      border: 1.5px solid #e8a0bb;
-      border-radius: 6px;
-      padding: 4px 10px;
-      margin-left: 4px;
-      white-space: nowrap;
-    }
-    .ans-bubble.show { display: inline-block; }
 
     .feedback {
       font-size: 0.82rem;
@@ -423,19 +410,17 @@
   // 「答えを見る」ボタンを全inputに自動追加
   document.querySelectorAll('input[type="text"][data-ans]').forEach(inp => {
     const ans = inp.dataset.ans;
+    const originalPlaceholder = inp.placeholder;
     const btn = document.createElement('button');
     btn.className = 'ans-btn';
     btn.textContent = '答えを見る';
-    const bubble = document.createElement('span');
-    bubble.className = 'ans-bubble';
-    bubble.textContent = ans;
+    let showing = false;
     btn.addEventListener('click', () => {
-      const showing = bubble.classList.contains('show');
-      bubble.classList.toggle('show', !showing);
-      btn.textContent = showing ? '答えを見る' : '隠す';
+      showing = !showing;
+      inp.placeholder = showing ? ans : originalPlaceholder;
+      btn.textContent = showing ? '隠す' : '答えを見る';
     });
     inp.parentNode.appendChild(btn);
-    inp.parentNode.appendChild(bubble);
   });
 
   const OX_ANSWERS = { ox1: '○', ox2: '×', ox3: '○', ox4: '○', ox5: '×' };
