@@ -1,0 +1,21 @@
+{
+  "name": "アイオワの玉葱 確認テスト",
+  "short_name": "玉葱テスト",
+  "description": "長田弘「アイオワの玉葱」漢字・語句・読解の確認テスト",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f4f0",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

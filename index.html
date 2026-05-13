@@ -1,543 +1,551 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ライフステージと健康 - 一問一答</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#2d6a4f"/>
+<title>アイオワの玉葱 — 確認テスト</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:#f0f4f0;color:#222;min-height:100vh;display:flex;flex-direction:column}
+header{background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#fff;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+header h1{font-size:1.1rem;letter-spacing:.05em}
+header p{font-size:.75rem;opacity:.8;margin-top:4px}
+#prog-wrap{background:#b7e4c7;height:6px}
+#prog-bar{height:6px;background:linear-gradient(90deg,#1b4332,#52b788);transition:width .4s ease;width:0%}
+.container{max-width:600px;margin:0 auto;padding:24px 16px 60px;width:100%;flex:1}
+#counter{text-align:center;font-size:.8rem;color:#555;margin-bottom:16px}
 
-    body {
-      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-      background: #f5f0f8;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+/* カード */
+#q-card{background:#fff;border-radius:16px;padding:24px 20px;box-shadow:0 4px 16px rgba(0,0,0,.08);border-left:5px solid #52b788;display:flex;flex-direction:column;gap:14px;min-height:160px}
+#sec-badge{display:inline-block;background:#d8f3dc;color:#1b4332;font-size:.72rem;font-weight:bold;padding:3px 10px;border-radius:100px;width:fit-content}
+#q-text{font-size:1.05rem;line-height:1.9;font-weight:bold}
+#q-hint{font-size:.85rem;color:#555;line-height:1.7}
 
-    header {
-      background: linear-gradient(135deg, #8b2252, #c0396e);
-      color: white;
-      padding: 18px 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    header h1 { font-size: 1.2rem; }
+/* テキスト入力 */
+#input-row{display:flex;gap:8px;align-items:center}
+#ans-input{flex:1;border:2px solid #ccc;border-radius:10px;padding:11px 13px;font-size:1.05rem;font-family:inherit;outline:none;transition:border-color .2s,background .2s;min-width:0}
+#ans-input:focus{border-color:#52b788}
+#ans-input.ok{border-color:#2d9e5b;background:#edfaf3}
+#ans-input.ng{border-color:#e04040;background:#fff0f0;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#show-btn{flex-shrink:0;background:none;border:1.5px solid #bbb;border-radius:8px;padding:9px 11px;font-size:.78rem;color:#666;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+#show-btn:hover{border-color:#52b788;color:#1b4332}
 
-    /* 進捗バー */
-    #progress-wrap {
-      background: #e8d4e8;
-      height: 6px;
-    }
-    #progress-bar {
-      height: 6px;
-      background: linear-gradient(90deg, #8b2252, #c0396e);
-      transition: width 0.4s ease;
-      width: 0%;
-    }
+/* 選択肢 */
+#choices{display:flex;flex-direction:column;gap:10px}
+.choice-btn{width:100%;background:#f8fdf9;border:2px solid #c8e6c9;border-radius:12px;padding:14px 16px;font-size:.95rem;font-family:inherit;text-align:left;cursor:pointer;transition:all .15s;line-height:1.6}
+.choice-btn:hover{border-color:#52b788;background:#eaf5eb}
+.choice-btn.selected-ok{border-color:#2d9e5b;background:#d4edda;color:#1b4332;font-weight:bold}
+.choice-btn.selected-ng{border-color:#e04040;background:#fde8e8}
+.choice-btn.reveal-ok{border-color:#2d9e5b;background:#d4edda}
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 30px 16px 40px;
-      width: 100%;
-      flex: 1;
-    }
+/* フィードバック */
+#feedback{text-align:center;font-size:1.1rem;font-weight:bold;min-height:28px}
+#feedback.ok{color:#2d9e5b}
+#feedback.ng{color:#e04040}
 
-    /* カウンター */
-    #counter {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #999;
-      margin-bottom: 20px;
-    }
+/* 次へ */
+#next-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(45,106,79,.3);transition:transform .1s,opacity .2s;margin-top:10px}
+#next-btn:hover{transform:translateY(-1px)}
+#next-btn:disabled{opacity:.35;cursor:default;transform:none}
 
-    /* 問題カード */
-    #q-card {
-      background: white;
-      border-radius: 16px;
-      padding: 28px 24px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      border-left: 5px solid #c0396e;
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+/* 結果 */
+#result{display:none;background:#fff;border-radius:16px;padding:36px 20px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+#result h2{font-size:1.4rem;color:#1b4332;margin-bottom:12px}
+#r-score{font-size:3.6rem;font-weight:bold;color:#2d6a4f;line-height:1}
+#r-sub{font-size:1rem;color:#777;margin:6px 0 18px}
+#r-bar-w{background:#d8f3dc;border-radius:100px;height:12px;overflow:hidden;margin-bottom:18px}
+#r-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#1b4332,#52b788);width:0%;transition:width 1s ease}
+#r-msg{font-size:1.05rem;margin-bottom:24px}
+.retry-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:bold;cursor:pointer;font-family:inherit;margin-bottom:10px}
+.section-btn{display:block;width:100%;padding:12px;background:#fff;color:#1b4332;border:2px solid #2d6a4f;border-radius:12px;font-size:.9rem;font-weight:bold;cursor:pointer;font-family:inherit;margin-bottom:8px}
 
-    #section-badge {
-      display: inline-block;
-      background: #f9e4ef;
-      color: #8b2252;
-      font-size: 0.75rem;
-      font-weight: bold;
-      padding: 3px 10px;
-      border-radius: 100px;
-      width: fit-content;
-    }
-
-    #q-text {
-      font-size: 1.05rem;
-      line-height: 1.8;
-      font-weight: bold;
-    }
-
-    /* 入力エリア */
-    #input-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    #ans-input {
-      flex: 1;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 1.05rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-      min-width: 0;
-    }
-    #ans-input:focus { border-color: #c0396e; }
-    #ans-input.correct-input {
-      border-color: #2e9e5b;
-      background: #edfaf3;
-    }
-    #ans-input.wrong-input {
-      border-color: #e04040;
-      background: #fff0f0;
-      animation: shake 0.3s ease;
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
-    }
-
-    #show-ans-btn {
-      flex-shrink: 0;
-      background: none;
-      border: 1.5px solid #bbb;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 0.8rem;
-      color: #777;
-      cursor: pointer;
-      font-family: inherit;
-      white-space: nowrap;
-      transition: all 0.15s;
-    }
-    #show-ans-btn:hover { border-color: #c0396e; color: #c0396e; background: #fdf0f5; }
-
-    /* ○×ボタン */
-    #ox-row {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-    }
-    .ox-btn {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      border: 3px solid #ddd;
-      background: white;
-      font-size: 2rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-weight: bold;
-    }
-    .ox-btn:hover { background: #f9e4ef; border-color: #c0396e; transform: scale(1.05); }
-    .ox-btn.selected-maru { background: #2e9e5b; border-color: #2e9e5b; color: white; }
-    .ox-btn.selected-batsu { background: #e04040; border-color: #e04040; color: white; }
-
-    /* フィードバック */
-    #feedback {
-      text-align: center;
-      font-size: 1.3rem;
-      font-weight: bold;
-      min-height: 36px;
-      transition: opacity 0.2s;
-    }
-    #feedback.correct-fb { color: #2e9e5b; }
-    #feedback.wrong-fb   { color: #e04040; }
-
-    /* 次へボタン */
-    #next-btn {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #8b2252, #c0396e);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: inherit;
-      box-shadow: 0 4px 12px rgba(192,57,110,0.3);
-      transition: transform 0.1s, opacity 0.2s;
-      margin-top: 8px;
-    }
-    #next-btn:hover { transform: translateY(-1px); }
-    #next-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
-
-    /* 結果画面 */
-    #result-screen {
-      display: none;
-      background: white;
-      border-radius: 16px;
-      padding: 36px 24px;
-      text-align: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-    #result-screen h2 { font-size: 1.4rem; color: #8b2252; margin-bottom: 16px; }
-    #result-score { font-size: 3.5rem; font-weight: bold; color: #c0396e; line-height: 1; }
-    #result-sub { font-size: 1rem; color: #888; margin: 8px 0 20px; }
-    #result-msg { font-size: 1.1rem; margin-bottom: 24px; }
-    #result-bar-wrap { background: #f0e0ea; border-radius: 100px; height: 14px; margin: 0 0 24px; overflow: hidden; }
-    #result-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #8b2252, #c0396e); width: 0%; transition: width 1s ease; }
-
-    .btn-retry {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #8b2252, #c0396e);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: inherit;
-      box-shadow: 0 4px 12px rgba(192,57,110,0.3);
-    }
-  </style>
+/* セクション選択画面 */
+#menu{background:#fff;border-radius:16px;padding:24px 20px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+#menu h2{font-size:1.1rem;font-weight:bold;color:#1b4332;margin-bottom:16px;text-align:center}
+.menu-btn{display:block;width:100%;padding:14px 16px;background:#f8fdf9;border:2px solid #c8e6c9;border-radius:12px;font-size:.95rem;font-family:inherit;text-align:left;cursor:pointer;margin-bottom:10px;transition:all .15s;color:#222}
+.menu-btn:hover{border-color:#52b788;background:#eaf5eb}
+.menu-btn span{font-size:.75rem;color:#555;display:block;margin-top:3px}
+</style>
 </head>
 <body>
-
 <header>
-  <h1>📖 ライフステージと健康 / 結婚生活と健康</h1>
+  <h1>📗 アイオワの玉葱</h1>
+  <p>長田 弘 ／ 第一章 確認テスト</p>
 </header>
-<div id="progress-wrap"><div id="progress-bar"></div></div>
+<div id="prog-wrap"><div id="prog-bar"></div></div>
 
 <div class="container">
   <div id="counter"></div>
 
-  <div id="q-card">
-    <div id="section-badge"></div>
+  <!-- セクション選択メニュー -->
+  <div id="menu">
+    <h2>問題を選んでください</h2>
+    <button class="menu-btn" onclick="startSection(0)">
+      【１】漢字と語句の確認 ① 読み
+      <span>①〜⑮ の漢字の読みをひらがなで答える（15問）</span>
+    </button>
+    <button class="menu-btn" onclick="startSection(1)">
+      【１】漢字と語句の確認 ② 書き
+      <span>⑯〜㉚ カタカナを漢字に直す（15問）</span>
+    </button>
+    <button class="menu-btn" onclick="startSection(2)">
+      【２】語句の意味
+      <span>語句の意味を選択肢から選ぶ（3問）</span>
+    </button>
+    <button class="menu-btn" onclick="startSection(3)">
+      【段落構成の整理】穴埋め
+      <span>段落の空欄に入る語句を答える（10問）</span>
+    </button>
+    <button class="menu-btn" onclick="startSection(4)">
+      【文脈と文意の整理】
+      <span>読解・抜き出し・選択問題（6問）</span>
+    </button>
+    <button class="menu-btn" onclick="startSection(5)">
+      【まとめ】総合問題
+      <span>設問3〜7・まとめ（選択・記述）（7問）</span>
+    </button>
+    <button class="menu-btn" onclick="startAll()">
+      🔀 全問シャッフル（56問）
+      <span>全セクションをランダムに出題</span>
+    </button>
+  </div>
+
+  <!-- 問題カード -->
+  <div id="q-card" style="display:none">
+    <div id="sec-badge"></div>
     <div id="q-text"></div>
+    <div id="q-hint"></div>
     <div id="input-row" style="display:none">
-      <input type="text" id="ans-input" placeholder="答えを入力" autocomplete="off" />
-      <button id="show-ans-btn">答えを見る</button>
+      <input type="text" id="ans-input" placeholder="答えを入力" autocomplete="off"/>
+      <button id="show-btn">答えを見る</button>
     </div>
-    <div id="ox-row" style="display:none">
-      <button class="ox-btn" id="btn-maru">○</button>
-      <button class="ox-btn" id="btn-batsu">×</button>
-    </div>
+    <div id="choices" style="display:none"></div>
     <div id="feedback"></div>
   </div>
 
-  <button id="next-btn" disabled>次の問題 →</button>
+  <button id="next-btn" style="display:none" disabled>次の問題 →</button>
 
-  <div id="result-screen">
+  <!-- 結果画面 -->
+  <div id="result">
     <h2>🎉 テスト終了！</h2>
-    <div id="result-score"></div>
-    <div id="result-sub"></div>
-    <div id="result-bar-wrap"><div id="result-bar"></div></div>
-    <div id="result-msg"></div>
-    <button class="btn-retry" onclick="startQuiz()">🔄 もう一度チャレンジ</button>
+    <div id="r-score"></div>
+    <div id="r-sub"></div>
+    <div id="r-bar-w"><div id="r-bar"></div></div>
+    <div id="r-msg"></div>
+    <button class="retry-btn" onclick="retrySection()">🔄 もう一度</button>
+    <button class="section-btn" onclick="showMenu()">📋 問題選択に戻る</button>
   </div>
 </div>
 
 <script>
-const questions = [
-  // ── 第1章 穴埋め ──
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '心や体はある年齢までは発育・発達していきますが、その後発育・発達は止まり（　）が始まります。',
-    ans: '老化' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '就学・就職・結婚・出産・育児・退職などのできごとを（　）という。',
-    ans: 'ライフイベント' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '（　）はありますが、人生においてライフイベントは誰にでも起こります。',
-    ans: '個人差' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '（　）とは、年齢をもとに人生を乳幼児期・学童期・思春期・青年期・中年期・高年期などに分けたものである。',
-    ans: 'ライフステージ' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: 'ライフステージによって（　）も変化していきます。',
-    ans: '健康課題' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '乳幼児期・学童期の健康や福祉を守る法律のひとつ、（　）とは？',
-    ans: '母子保健法' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '乳幼児期・学童期の健康を守る法律として、母子保健法・児童福祉法のほかに（　）がある。',
-    ans: '学校保健安全法' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: 'これらの法律により、（　）や医療・保健指導がおこなわれている。',
-    ans: '健康診断' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '健康診断や医療のほかに、（　）もおこなわれている。',
-    ans: '保健指導' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '高齢者に対しては、（　）や介護が提供されている。',
-    ans: '医療' },
-  { section: '第1章｜穴埋め', type: 'text',
-    q: '高齢者に対しては、医療や（　）が提供されている。',
-    ans: '介護' },
+/* ============================================================
+   問題データ
+============================================================ */
+const SECTIONS = [
 
-  // ── 第1章 記述 ──
-  { section: '第1章｜記述', type: 'text',
-    q: '学童期〜青年期まで続く性にかかわる課題①（4つのうち）',
-    ans: '性行動' },
-  { section: '第1章｜記述', type: 'text',
-    q: '学童期〜青年期まで続く性にかかわる課題②（4つのうち）',
-    ans: '妊娠' },
-  { section: '第1章｜記述', type: 'text',
-    q: '学童期〜青年期まで続く性にかかわる課題③（4つのうち）',
-    ans: '出産' },
-  { section: '第1章｜記述', type: 'text',
-    q: '学童期〜青年期まで続く性にかかわる課題④（4つのうち）',
-    ans: '育児' },
-  { section: '第1章｜記述', type: 'text',
-    q: '働くこととのかかわりで生じる健康課題①（2つのうち）',
-    ans: '労働災害' },
-  { section: '第1章｜記述', type: 'text',
-    q: '働くこととのかかわりで生じる健康課題②（2つのうち）',
-    ans: '身体活動の減少' },
-  { section: '第1章｜記述', type: 'text',
-    q: '高年期における健康課題①（4つのうち）',
-    ans: '生活習慣病' },
-  { section: '第1章｜記述', type: 'text',
-    q: '高年期における健康課題②（4つのうち）',
-    ans: '骨折' },
-  { section: '第1章｜記述', type: 'text',
-    q: '高年期における健康課題③（4つのうち）',
-    ans: '白内障' },
-  { section: '第1章｜記述', type: 'text',
-    q: '高年期における健康課題④（4つのうち）',
-    ans: '交通事故' },
+  // ── Section 0: 漢字の読み ──
+  { title: '漢字の読み', badge: '1｜漢字の読み', type: 'text', qs: [
+    { q: '①　直面', h: '「直面する」の読み', ans: 'ちょくめん' },
+    { q: '②　憂鬱', h: '気持ちが晴れない状態', ans: 'ゆううつ' },
+    { q: '③　厄介', h: '面倒なこと', ans: 'やっかい' },
+    { q: '④　概念', h: 'ある事物の大まかな意味内容', ans: 'がいねん' },
+    { q: '⑤　幾人', h: '何人か', ans: 'いくにん' },
+    { q: '⑥　命名', h: '名前をつけること', ans: 'めいめい' },
+    { q: '⑦　隙間', h: 'すき間', ans: 'すきま' },
+    { q: '⑧　避ける', h: 'さける', ans: 'さける' },
+    { q: '⑨　趣がある', h: 'おもむきがある', ans: 'おもむきがある' },
+    { q: '⑩　微妙', h: 'はっきりしない、細かいさま', ans: 'びみょう' },
+    { q: '⑪　特徴', h: '他と区別される性質', ans: 'とくちょう' },
+    { q: '⑫　比喩', h: '例えること', ans: 'ひゆ' },
+    { q: '⑬　文脈', h: '文章の流れ・つながり', ans: 'ぶんみゃく' },
+    { q: '⑭　関与', h: '関わること', ans: 'かんよ' },
+    { q: '⑮　自明', h: '説明しなくても明らかなこと', ans: 'じめい' },
+  ]},
 
-  // ── 第6章 穴埋め ──
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '社会的に認められた夫婦の関係として、結婚は（　）で定められている。',
-    ans: '法律' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '（　）が十分に発達していることは結婚における大切な要件といえる。',
-    ans: '生殖機能' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '出産する（　）が上がるにしたがって妊娠が難しくなる。',
-    ans: '年齢' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '出産する年齢が上がると（　）など、出産にともなう健康上の問題が起こる危険性が高くなる。',
-    ans: '死産' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '結婚することでそれまで異なる生活をしていた者どうしの（　）が始まる。',
-    ans: '共同生活' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '結婚生活で起こることに対して、パートナーと（　）して対処していくことが必要。',
-    ans: '協力' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '互いを認めあい、健康に対する（　）や思いやりをもつことが大切。',
-    ans: '責任感' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '良好な（　）を構築していくことが必要である。',
-    ans: '人間関係' },
-  { section: '第6章｜穴埋め', type: 'text',
-    q: '（　）の発達も欠かすことができない。',
-    ans: '精神面' },
+  // ── Section 1: 漢字の書き ──
+  { title: '漢字の書き', badge: '1｜漢字の書き', type: 'text', qs: [
+    { q: '⑯　トッゼンの出来事', h: 'トッゼン→漢字2字', ans: '突然' },
+    { q: '⑰　ショウガイ物競走', h: 'ショウガイ→漢字2字', ans: '障害' },
+    { q: '⑱　フウゾクや習慣', h: 'フウゾク→漢字2字', ans: '風俗' },
+    { q: '⑲　リョウカイする', h: 'リョウカイ→漢字2字', ans: '了解' },
+    { q: '⑳　絶好のキカイ', h: 'キカイ→漢字2字', ans: '機会' },
+    { q: '㉑　セツジツな願い', h: 'セツジツ→漢字2字', ans: '切実' },
+    { q: '㉒　コウガイの住宅', h: 'コウガイ→漢字2字', ans: '郊外' },
+    { q: '㉓　レイトウの食品', h: 'レイトウ→漢字2字', ans: '冷凍' },
+    { q: '㉔　シンセンな魚', h: 'シンセン→漢字2字', ans: '新鮮' },
+    { q: '㉕　セイケツに保つ', h: 'セイケツ→漢字2字', ans: '清潔' },
+    { q: '㉖　フウゾクや習慣（別字）\nキョウクツな生活', h: 'キョウクツ→漢字2字', ans: '窮屈' },
+    { q: '㉗　植物のサイバイ', h: 'サイバイ→漢字2字', ans: '栽培' },
+    { q: '㉘　辞書をクる', h: 'クる→漢字1字（ページをめくる）', ans: '繰る' },
+    { q: '㉙　テイネイに書く', h: 'テイネイ→漢字2字', ans: '丁寧' },
+    { q: '㉚　ナミダを流す', h: 'ナミダ→漢字1字', ans: '涙' },
+  ]},
 
-  // ── ○× ──
-  { section: '○×問題', type: 'ox',
-    q: 'ライフステージとは年齢をもとに人生を段階に分けたものである。',
-    ans: '○' },
-  { section: '○×問題', type: 'ox',
-    q: '出産する年齢が上がっても妊娠の難しさは変わらない。',
-    ans: '×' },
-  { section: '○×問題', type: 'ox',
-    q: '高年期の健康課題に骨折や白内障が含まれる。',
-    ans: '○' },
-  { section: '○×問題', type: 'ox',
-    q: '労働災害は働くこととかかわりのある健康課題である。',
-    ans: '○' },
-  { section: '○×問題', type: 'ox',
-    q: '結婚生活では精神面の発達は特に必要ではない。',
-    ans: '×' },
+  // ── Section 2: 語句の意味 ──
+  { title: '語句の意味', badge: '2｜語句の意味', type: 'choice', qs: [
+    { q: '① 母語', h: '次のア〜エから最も適当なものを選べ',
+      choices: [
+        'ア　母親が自分の子供のために作った言語',
+        'イ　人間が幼少期に習い覚えた言語',
+        'ウ　自分が生まれ育った国の言語',
+        'エ　自分の母親だけに通じる幼児期の言語',
+      ], ans: 'イ' },
+    { q: '② ナイーブ', h: '次のア〜エから最も適当なものを選べ',
+      choices: [
+        'ア　偶然な',
+        'イ　感情的な',
+        'ウ　純粋な',
+        'エ　不思議な',
+      ], ans: 'ウ' },
+    { q: '③ 暮覚（ぼかく）', h: '次のア〜エから最も適当なものを選べ',
+      choices: [
+        'ア　はっきりとした感覚',
+        'イ　結局',
+        'ウ　長年',
+        'エ　いわゆる',
+      ], ans: 'エ' },
+  ]},
+
+  // ── Section 3: 段落構成の整理 ──
+  { title: '段落構成の整理', badge: '段落構成', type: 'mix', qs: [
+    // 第一段落
+    { type:'text', q: '第一段落（初め〜三・3）\n異国で暮らして第一に直面したことは、[①] の困難に[　] ことだった。',
+      h: '①の空欄：本文中の語句2字', ans: '言葉' },
+    { type:'text', q: '第一段落\nその問題は、現実とかかわりかたによるものではなく、[②] の問題であることに気づいた。',
+      h: '②の空欄：本文中の語句', ans: '相対化' },
+    // 第二段落
+    { type:'text', q: '第二段落（三・4〜四・7）\n異国の友人ができ、「玉葱」の概念やイメージやニュアンスによって、[③] 的なものになった。',
+      h: '③の空欄：本文中の語句', ans: '命名' },
+    // 第三段落
+    { type:'text', q: '第三段落（四・8〜七・2）\n英語の辞書には「玉葱」の[④] があり、そのちがいやいわゆる「ちがい」がふくみこまれている。',
+      h: '④の空欄：本文中の語句', ans: '概念' },
+    { type:'text', q: '第三段落\n国語の辞書は形体の特徴、英語の辞書は味覚の特徴、そのちがいの背景には[⑤] の意識がある。',
+      h: '⑤の空欄', ans: '母語' },
+    // 第四段落
+    { type:'text', q: '第四段落（七・3〜八・5）\n一つの母語は一つの限界の認識を示す言葉である。わたしの言葉も他の誰の言葉も[⑥] のだ。',
+      h: '⑥の空欄：本文中の語句（たがいの〜）', ans: 'たがいの言葉' },
+    { type:'text', q: '第四段落\n言葉は[⑦] への想像力によって言葉なのだ。',
+      h: '⑦の空欄：本文中の語句', ans: '他者' },
+    { type:'text', q: '段落構成\n日本語では玉葱、英語では Onion として、それぞれの生活や文化などの[⑧] が現れている。',
+      h: '⑧の空欄', ans: '母語' },
+    { type:'text', q: '段落構成\n日本語での玉葱の切り抜きかたには、[⑨] の意識が関与する。',
+      h: '⑨の空欄', ans: 'たがいの' },
+    { type:'text', q: '段落構成\n言葉は他者への[⑩] によって言葉なのだ、とわたしは気づかされた。',
+      h: '⑩の空欄', ans: '想像力' },
+  ]},
+
+  // ── Section 4: 文脈と文意の整理 ──
+  { title: '文脈と文意の整理', badge: '文脈と文意', type: 'mix', qs: [
+    { type:'text',
+      q: '文脈と文意の整理 1\n「二重に憂鬱なものだった」（二・5）とあるが、どのように「二重」なのか。\n①ある日本語とはちがうという困難と、その英語こそが[　]である日本語とはちがうという困難とが重なっている点。',
+      h: '空欄に入る語句を本文中から抜き出せ',
+      ans: 'ナイーブ' },
+    { type:'text',
+      q: '文脈と文意の整理 1\n②英語をつかって暮らさねばならないという困難と、その英語こそが[　]に信じこんでいるという困難とが重なっている。',
+      h: '空欄に入る語句（カタカナ）',
+      ans: 'ナイーブ' },
+    { type:'text',
+      q: '文脈と文意の整理 2\n「生活の手づきとしての言葉」（二・11）とあるが、筆者が「一生 活の具体例として挙げているものを一文で抜き出しなさい。初めの5字は？',
+      h: '本文より一文の初め5字を答えよ',
+      ans: '桃は果物では' },
+    { type:'text',
+      q: '「生活の手づきとしての言葉」（二・11）の具体例\nもう一つ（初めの5字）',
+      h: '本文より別の一文の初め5字',
+      ans: 'しきりに' },
+    { type:'choice',
+      q: '「玉葱は玉葱でもちがう玉葱」（八・6）とあるが、これはどのようなことか。最も適当なものを選べ。',
+      h: 'ア〜エから選べ',
+      choices: [
+        'ア　自分が理解している玉葱の概念は、母語の違う他者が理解している玉葱の概念とは大きく異なることがあるが、玉葱そのものが同じなので、他者が理解している玉葱の概念も同じである',
+        'イ　日本の玉葱とアメリカの玉葱は形や種類も全く異なっているので、「Onion」と「玉葱」は別の植物であると考えるのが妥当であるということ',
+        'ウ　同じ玉葱を一緒に見ていても、自分が理解している玉葱の概念と、母語の異なる他者はそのままの玉葱の概念とはずれやちがいがあること',
+        'エ　同じ玉葱であっても、自分が理解している玉葱の概念と「Onion」とアメリカの玉葱の概念は「Onion」と「玉葱」は別の植物だということ',
+      ],
+      ans: 'ウ' },
+  ]},
+
+  // ── Section 5: 設問3〜7・まとめ ──
+  { title: '設問3〜7・まとめ', badge: '読解問題', type: 'mix', qs: [
+    { type:'text',
+      q: '設問3\n「そのこと」（一四・4）は何をさしているか。本文中の語句を用いて答えなさい。',
+      h: '「そのこと」の内容を答えよ',
+      ans: '他者をまっすぐにみとめること' },
+    { type:'text',
+      q: '設問4 ①\n「それ」（一四・14）は何をさしているか。本文中から四字以内で抜き出せ。',
+      h: '四字以内で抜き出す',
+      ans: '言葉の本質' },
+    { type:'text',
+      q: '設問4 ②\n「ここ」（同・17）は何をさしているか。本文中から四字以内で抜き出せ。',
+      h: '四字以内で抜き出す',
+      ans: 'たがいの' },
+    { type:'text',
+      q: '設問5\n「わたしはおもわずかんがえこんでしまった」（一七・5）とあるが、「かんがえこんだ」内容を具体的に表す一文を探し、初めの五字を抜き出しなさい。',
+      h: '初めの5字を答えよ',
+      ans: 'たがいの限界' },
+    { type:'text',
+      q: '設問6\n「相対化されるをえないというごく単純な事実」（一七・15）を具体的に表している一続きの二文の、初めの五字を答えなさい。',
+      h: '二文の初め5字を答えよ',
+      ans: 'わたしの言葉' },
+    { type:'choice',
+      q: '設問7\n「言葉は、他者への想像力によって、言葉なのだ」（一八・4）とはどのようなことか。最も適当なものを選べ。',
+      h: 'ア〜エから選べ',
+      choices: [
+        'ア　他者を相対化することによって、自明とおもえた概念に気づき、発展するということ',
+        'イ　たがいの限界を認識することを通じて、他者を理解することができるということ',
+        'ウ　たがいの限界やちがいやずれ、隙間をとおして、言葉の本質的な力だということ',
+        'エ　異国で暮らすことで、他者を理解することができるということ',
+      ],
+      ans: 'ウ' },
+    { type:'choice',
+      q: '【まとめ】\n「玉葱は玉葱でもちがう玉葱」（八・6）を指しているか。その説明として最も適当なものを選べ。',
+      h: 'ア〜エから選べ',
+      choices: [
+        'ア　自分が理解している玉葱の概念は、母語の違う他者が理解している玉葱の概念と同じなので、他者を理解することができるということ',
+        'イ　日本の玉葱とアメリカの玉葱とアメリカの玉葱の概念は形や年類も同じなので、「Onion」と「玉葱」は同じである',
+        'ウ　同じ玉葱であっても、自分と他者とでは玉葱の概念に違いがあるということ',
+        'エ　同じ玉葱を見ていても、自分がそのままの玉葱の色や形を想像しているという',
+      ],
+      ans: 'ウ' },
+  ]},
 ];
 
-let idx = 0, correct = 0, answered = false, showing = false;
+/* ============================================================
+   クイズエンジン
+============================================================ */
+let currentSec = -1, order = [], idx = 0, correct = 0, answered = false, showing = false;
 
-function normalize(s) {
-  return s.trim().replace(/\s+/g, '')
-    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+function normalize(s){
+  return s.trim().replace(/\s+/g,'')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[ぁ-ん]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60));
+}
+function normAns(s){
+  return s.trim().replace(/\s+/g,'')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
   return arr;
 }
 
-let order = [];
+function showMenu(){
+  document.getElementById('menu').style.display='block';
+  document.getElementById('q-card').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('result').style.display='none';
+  document.getElementById('counter').textContent='';
+  document.getElementById('prog-bar').style.width='0%';
+}
 
-function startQuiz() {
-  idx = 0; correct = 0; answered = false; showing = false;
-  order = shuffle([...Array(questions.length).keys()]);
-  document.getElementById('result-screen').style.display = 'none';
-  document.getElementById('q-card').style.display = 'flex';
-  document.getElementById('counter').style.display = 'block';
-  document.getElementById('next-btn').style.display = 'block';
+// 全問まとめて
+function startAll(){
+  currentSec = -1;
+  const all=[];
+  SECTIONS.forEach((sec,si)=>{
+    sec.qs.forEach((q,qi)=>all.push({si,qi}));
+  });
+  order = shuffle(all);
+  idx=0; correct=0;
+  document.getElementById('menu').style.display='none';
+  document.getElementById('result').style.display='none';
+  document.getElementById('q-card').style.display='flex';
+  document.getElementById('next-btn').style.display='block';
+  loadMixQuestion();
+}
+
+function startSection(si){
+  currentSec=si;
+  const sec=SECTIONS[si];
+  order=shuffle([...Array(sec.qs.length).keys()]);
+  idx=0; correct=0;
+  document.getElementById('menu').style.display='none';
+  document.getElementById('result').style.display='none';
+  document.getElementById('q-card').style.display='flex';
+  document.getElementById('next-btn').style.display='block';
   loadQuestion();
 }
 
-function loadQuestion() {
-  answered = false;
-  showing = false;
-  const q = questions[order[idx]];
-  const total = questions.length;
+function retrySection(){
+  document.getElementById('result').style.display='none';
+  if(currentSec===-1) startAll();
+  else startSection(currentSec);
+}
 
-  document.getElementById('counter').textContent = `${idx + 1} / ${total}`;
-  document.getElementById('progress-bar').style.width = (idx / total * 100) + '%';
-  document.getElementById('section-badge').textContent = q.section;
-  document.getElementById('q-text').textContent = q.q;
-  document.getElementById('feedback').textContent = '';
-  document.getElementById('feedback').className = '';
+/* 問題ロード (セクション別) */
+function loadQuestion(){
+  answered=false; showing=false;
+  const sec=SECTIONS[currentSec];
+  const q=sec.qs[order[idx]];
+  const total=order.length;
 
-  const nextBtn = document.getElementById('next-btn');
-  nextBtn.disabled = true;
-  nextBtn.textContent = idx + 1 < total ? '次の問題 →' : '結果を見る';
+  document.getElementById('counter').textContent=`${idx+1} / ${total}`;
+  document.getElementById('prog-bar').style.width=(idx/total*100)+'%';
+  document.getElementById('sec-badge').textContent=sec.badge;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-hint').textContent=q.h||'';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='';
 
-  if (q.type === 'text') {
-    document.getElementById('input-row').style.display = 'flex';
-    document.getElementById('ox-row').style.display = 'none';
-    const inp = document.getElementById('ans-input');
-    inp.value = '';
-    inp.className = '';
-    inp.placeholder = '答えを入力';
-    inp.disabled = false;
-    inp.focus();
+  const nb=document.getElementById('next-btn');
+  nb.disabled=true;
+  nb.textContent=idx+1<total?'次の問題 →':'結果を見る';
 
-    const showBtn = document.getElementById('show-ans-btn');
-    showBtn.textContent = '答えを見る';
-    showBtn.onclick = () => {
-      showing = !showing;
-      inp.placeholder = showing ? q.ans : '答えを入力';
-      showBtn.textContent = showing ? '隠す' : '答えを見る';
-    };
+  const qtype = q.type || sec.type;
+  if(qtype==='choice'){
+    renderChoices(q);
   } else {
-    document.getElementById('input-row').style.display = 'none';
-    document.getElementById('ox-row').style.display = 'flex';
-    document.querySelectorAll('.ox-btn').forEach(b => {
-      b.classList.remove('selected-maru', 'selected-batsu');
-      b.disabled = false;
-    });
+    renderText(q);
   }
 }
 
-// テキスト入力リアルタイム判定
-document.getElementById('ans-input').addEventListener('input', () => {
-  if (answered) return;
-  const q = questions[order[idx]];
-  const inp = document.getElementById('ans-input');
-  const userVal = normalize(inp.value);
-  const correctVal = normalize(q.ans);
-  const isOk = userVal === correctVal || (correctVal.includes(userVal) && userVal.length >= 2 && userVal.length >= correctVal.length - 1);
-  if (isOk) {
-    answered = true;
-    correct++;
-    inp.classList.add('correct-input');
-    inp.disabled = true;
-    showFeedback(true, q.ans);
-    document.getElementById('next-btn').disabled = false;
+/* 全問シャッフル用 */
+function loadMixQuestion(){
+  answered=false; showing=false;
+  const item=order[idx];
+  const sec=SECTIONS[item.si];
+  const q=sec.qs[item.qi];
+  const total=order.length;
+
+  document.getElementById('counter').textContent=`${idx+1} / ${total}`;
+  document.getElementById('prog-bar').style.width=(idx/total*100)+'%';
+  document.getElementById('sec-badge').textContent=sec.badge;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-hint').textContent=q.h||'';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='';
+
+  const nb=document.getElementById('next-btn');
+  nb.disabled=true;
+  nb.textContent=idx+1<total?'次の問題 →':'結果を見る';
+
+  const qtype = q.type || sec.type;
+  if(qtype==='choice'){
+    renderChoices(q);
+  } else {
+    renderText(q);
+  }
+}
+
+function renderText(q){
+  document.getElementById('input-row').style.display='flex';
+  document.getElementById('choices').style.display='none';
+  const inp=document.getElementById('ans-input');
+  inp.value=''; inp.className=''; inp.placeholder='答えを入力'; inp.disabled=false;
+  inp.focus();
+  const sb=document.getElementById('show-btn');
+  sb.textContent='答えを見る';
+  sb.onclick=()=>{
+    showing=!showing;
+    inp.placeholder=showing?q.ans:'答えを入力';
+    sb.textContent=showing?'隠す':'答えを見る';
+  };
+}
+
+function renderChoices(q){
+  document.getElementById('input-row').style.display='none';
+  const box=document.getElementById('choices');
+  box.style.display='flex';
+  box.innerHTML='';
+  q.choices.forEach(ch=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.textContent=ch;
+    btn.onclick=()=>handleChoice(btn,ch,q);
+    box.appendChild(btn);
+  });
+}
+
+function handleChoice(btn,ch,q){
+  if(answered) return;
+  answered=true;
+  const letter=ch.charAt(0); // 'ア','イ','ウ','エ'
+  const ok=(letter===q.ans);
+  if(ok) correct++;
+  document.querySelectorAll('.choice-btn').forEach(b=>{
+    b.disabled=true;
+    const bl=b.textContent.charAt(0);
+    if(bl===q.ans) b.classList.add('reveal-ok');
+  });
+  if(ok) btn.classList.add('selected-ok');
+  else   btn.classList.add('selected-ng');
+  showFb(ok, ok?'':'正解：'+q.ans);
+  document.getElementById('next-btn').disabled=false;
+}
+
+/* テキストリアルタイム */
+document.getElementById('ans-input').addEventListener('input',()=>{
+  if(answered) return;
+  let q;
+  if(currentSec===-1){
+    const item=order[idx];
+    q=SECTIONS[item.si].qs[item.qi];
+  } else {
+    q=SECTIONS[currentSec].qs[order[idx]];
+  }
+  const inp=document.getElementById('ans-input');
+  const uv=normAns(inp.value);
+  const av=normAns(q.ans);
+  const ok=(uv===av || (av.includes(uv)&&uv.length>=2&&uv.length>=av.length-1));
+  if(ok){
+    answered=true; correct++;
+    inp.classList.add('ok'); inp.disabled=true;
+    showFb(true,'');
+    document.getElementById('next-btn').disabled=false;
   }
 });
 
-// ○×ボタン
-document.getElementById('btn-maru').addEventListener('click', () => handleOX('○'));
-document.getElementById('btn-batsu').addEventListener('click', () => handleOX('×'));
+document.getElementById('ans-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&answered) document.getElementById('next-btn').click();
+});
 
-function handleOX(val) {
-  if (answered) return;
-  answered = true;
-  const q = questions[order[idx]];
-  const isOk = val === q.ans;
-  if (isOk) correct++;
-
-  const maruBtn = document.getElementById('btn-maru');
-  const batsuBtn = document.getElementById('btn-batsu');
-  maruBtn.disabled = true;
-  batsuBtn.disabled = true;
-
-  if (val === '○') maruBtn.classList.add('selected-maru');
-  else batsuBtn.classList.add('selected-batsu');
-
-  showFeedback(isOk, `正解は「${q.ans}」`);
-  document.getElementById('next-btn').disabled = false;
-}
-
-function showFeedback(isOk, hint) {
-  const fb = document.getElementById('feedback');
-  if (isOk) {
-    fb.textContent = '✅ 正解！';
-    fb.className = 'correct-fb';
-  } else {
-    fb.textContent = `❌ 不正解　正解：${hint}`;
-    fb.className = 'wrong-fb';
-    const inp = document.getElementById('ans-input');
-    if (!inp.disabled) {
-      inp.classList.add('wrong-input');
-      setTimeout(() => inp.classList.remove('wrong-input'), 400);
-    }
+function showFb(ok,hint){
+  const fb=document.getElementById('feedback');
+  if(ok){ fb.textContent='✅ 正解！'; fb.className='ok'; }
+  else   { fb.textContent='❌ 不正解　'+hint; fb.className='ng';
+    const inp=document.getElementById('ans-input');
+    if(!inp.disabled){ inp.classList.add('ng'); setTimeout(()=>inp.classList.remove('ng'),400); }
   }
 }
 
-document.getElementById('next-btn').addEventListener('click', () => {
-  if (!answered) return;
+document.getElementById('next-btn').addEventListener('click',()=>{
+  if(!answered) return;
   idx++;
-  if (idx >= questions.length) {
-    showResult();
-  } else {
-    loadQuestion();
-  }
+  const total=order.length;
+  if(idx>=total){ showResult(); return; }
+  if(currentSec===-1) loadMixQuestion();
+  else loadQuestion();
 });
 
-// Enterキーで次へ
-document.getElementById('ans-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && answered) {
-    document.getElementById('next-btn').click();
-  }
-});
-
-function showResult() {
-  const total = questions.length;
-  const pct = Math.round(correct / total * 100);
-  document.getElementById('q-card').style.display = 'none';
-  document.getElementById('counter').style.display = 'none';
-  document.getElementById('next-btn').style.display = 'none';
-  document.getElementById('progress-bar').style.width = '100%';
-
-  const rs = document.getElementById('result-screen');
-  rs.style.display = 'block';
-  document.getElementById('result-score').textContent = `${pct}%`;
-  document.getElementById('result-sub').textContent = `${correct} / ${total} 問正解`;
-
-  let msg = '';
-  if (pct === 100) msg = '🎉 満点！完璧です！';
-  else if (pct >= 80) msg = '👏 よくできました！';
-  else if (pct >= 60) msg = '📚 もう少し復習しましょう！';
-  else msg = '💪 教科書を見直してもう一度！';
-  document.getElementById('result-msg').textContent = msg;
-
-  setTimeout(() => {
-    document.getElementById('result-bar').style.width = pct + '%';
-  }, 100);
+function showResult(){
+  const total=order.length;
+  const pct=Math.round(correct/total*100);
+  document.getElementById('q-card').style.display='none';
+  document.getElementById('counter').textContent='';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('prog-bar').style.width='100%';
+  const rs=document.getElementById('result');
+  rs.style.display='block';
+  document.getElementById('r-score').textContent=pct+'%';
+  document.getElementById('r-sub').textContent=`${correct} / ${total} 問正解`;
+  let msg='';
+  if(pct===100)      msg='🎉 満点！完璧です！';
+  else if(pct>=80)   msg='👏 よくできました！';
+  else if(pct>=60)   msg='📚 もう少し復習しましょう';
+  else               msg='💪 教科書をもう一度確認してみよう';
+  document.getElementById('r-msg').textContent=msg;
+  setTimeout(()=>{ document.getElementById('r-bar').style.width=pct+'%'; },100);
 }
 
-startQuiz();
+showMenu();
+
+// PWA Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
